@@ -1,0 +1,12 @@
+# The Stripes character. The entity and its appearances are in WendellStripes.archive.
+Character.WendellStripes:
+  $base: Character.LowlifeMaleDE
+  entityTemplatePath: wendellstripes\characters\stripes\stripes.ent
+  appearanceName: stripes
+  displayName: LocKey#WendellStripes-Name
+  fullDisplayName: LocKey#WendellStripes-Name
+
+# After he gave the cane to V: the same character with no cane in his hand.
+Character.WendellStripes_NoCane:
+  $base: Character.WendellStripes
+  appearanceName: stripes_no_cane

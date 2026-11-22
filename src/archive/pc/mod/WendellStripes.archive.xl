@@ -1,0 +1,5 @@
+factories:
+  - wendellstripes\items\factory.csv
+localization:
+  onscreens:
+    en-us: wendellstripes\localization\en-us.json

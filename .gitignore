@@ -1,0 +1,14 @@
+# WolvenKit project output
+*.cpmodproj.user
+packed/
+# Release packages
+dist/
+*.zip
+# OS / editor
+Thumbs.db
+.vscode/
+
+# Build work folder and the built archive (made by tools\character\build.ps1)
+.work/
+*.archive
+__pycache__/

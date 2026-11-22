@@ -1,0 +1,64 @@
+# The cane that V gets from Stripes. The texts are in WendellStripes.archive (localization).
+
+# The cane: the base-game cane weapon with a new iconic mod. The Vanish effect is in Vanish.reds.
+Items.WendellStripes_CaneModAbility:
+  $base: Items.IconicWeaponModAbilityBase
+  UIData:
+    $type: GameplayLogicPackageUIData
+    iconPath: ability_offensive
+    localizedDescription: LocKey#WendellStripes-Cane-Ability
+
+Items.WendellStripes_CaneMod:
+  $base: Items.IconicMeleeWeaponModBase
+  OnAttach:
+    - Items.WendellStripes_CaneModAbility
+
+# The grip part of the cane and the cane are copies of the base records with their own appearance
+# files (rows of wendellstripes\items\factory.csv): the plain cane mesh with the black and white bands.
+Items.WendellStripes_CaneGrip:
+  $base: Items.w_cane_grip
+  friendlyName: wendellstripes_cane_grip
+  appearanceResourceName: wendellstripes_cane_grip
+
+# The inventory icon of the cane. The game finds the icon of a weapon from its appearance name;
+# the new appearance name has no icon, so the cane names its icon with `iconPath`.
+UIIcon.WendellStripes_Cane:
+  $type: UIIcon
+  atlasResourcePath: wendellstripes\items\cane\cane_icon.inkatlas
+  atlasPartName: wendellstripes_cane
+
+# The icon next to the health bar while V holds the cane: a white line drawing in the same atlas.
+HUDWeaponIcons.WendellStripes_Cane:
+  $type: UIIcon
+  atlasResourcePath: wendellstripes\items\cane\cane_icon.inkatlas
+  atlasPartName: wendellstripes_cane_hud
+
+Items.WendellStripes_Cane:
+  $base: Items.Preset_Cane_Fingers
+  iconPath: WendellStripes_Cane
+  hudIcon: HUDWeaponIcons.WendellStripes_Cane
+  # The highest tier, 5++ (user decision 2026-11-21), set as the game does it for its own top-tier
+  # copy of the cane (`Items.VHard_50_BodyCool_Weapon10`): legendary quality and the "plus plus"
+  # modifier. The base record takes a random tier from the level of the item.
+  quality: Quality.Legendary
+  statModifiers:
+    - !append-once Quality.PlusPlusModifier
+  displayName: LocKey#WendellStripes-Cane-Name
+  localizedDescription: LocKey#WendellStripes-Cane-Desc
+  appearanceResourceName: wendellstripes_cane
+  # The base cane sets a quest fact when V gets it. This cane must not.
+  OnLooted: []
+  # The grip slot of the base record does not accept a new grip part, so the list is replaced.
+  slotPartList:
+    - $type: SlotItemPartListElement
+      slot: AttachmentSlots.Grip
+      itemPartList:
+        - $type: ItemPartListElement
+          item: Items.WendellStripes_CaneGrip
+  slotPartListPreset:
+    - $type: SlotItemPartPreset
+      slot: AttachmentSlots.Grip
+      itemPartPreset: Items.WendellStripes_CaneGrip
+    - $type: SlotItemPartPreset
+      slot: AttachmentSlots.IconicMeleeWeaponMod1
+      itemPartPreset: Items.WendellStripes_CaneMod
