@@ -1,5 +1,7 @@
 # Where's Wendell (Strypovski)
 
+![Wendell "Stripes" Strypovski, in a striped shirt and hat with a banded cane, in a crowd on a Night City street](docs/wendell.jpg)
+
 > This is Wendell "Stripes" Strypovski, an eddie skimmer Jackie knew back in the day. He owed Jackie €$100k for a gig they worked together, but he's a slippery fuck who disappeared when it came time to give Jackie his fair share. V's been keeping an eye out for Stripes to collect the debt. It's what Jackie would have wanted, and it would finally put to bed a question that's been nagging at V since Jackie's death: where the fuck is Wendell?
 
 A Cyberpunk 2077 mod. Wendell "Stripes" Strypovski, an eddie skimmer in a striped shirt, appears very rarely in the crowds of Night City. Find him and call in the debt.
