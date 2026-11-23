@@ -1,0 +1,110 @@
+# Uploads the zip of a GitHub Release to Nexus Mods as a new version of the mod's file.
+#
+# The zip is not built here: the mod's archive is made from the files of a local copy of
+# the game (tools\package.ps1). Attach dist\WendellStripes-<version>.zip to a release with
+# the tag v<version>; this workflow sends that zip to Nexus Mods.
+#
+# Setup, one time (repository Settings -> Secrets and variables -> Actions):
+#   secret   NEXUSMODS_API_KEY   an API key from https://www.nexusmods.com/settings/api-keys
+#   variable NEXUSMODS_FILE_ID   the ID of the file on the mod page (Files tab, "Advanced")
+#   variable NEXUSMODS_MOD_ID    optional: the mod ID; with it, the release notes become the changelog
+# The mod page must exist and must have one file uploaded by hand before the first run.
+
+name: Nexus Mods release
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Tag of an existing release to upload (for example v1.0.1)
+        required: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nexus-release
+  cancel-in-progress: false
+
+jobs:
+  upload:
+    # Drafts do not start the workflow. Pre-releases are not sent to Nexus Mods.
+    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
+    runs-on: ubuntu-latest
+    env:
+      TAG: ${{ github.event.release.tag_name || inputs.tag }}
+    steps:
+      - name: Get the zip of the release
+        id: zip
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FILE_ID: ${{ vars.NEXUSMODS_FILE_ID }}
+        run: |
+          set -euo pipefail
+          if [ -z "$FILE_ID" ]; then
+            echo "::error::The repository variable NEXUSMODS_FILE_ID is not set."
+            exit 1
+          fi
+          if ! [[ "$TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+            echo "::error::The tag must have the form v1.2.3."
+            exit 1
+          fi
+          version="${TAG#v}"
+          name="WendellStripes-$version.zip"
+          gh release download "$TAG" --repo "$GITHUB_REPOSITORY" --pattern "$name" --dir release
+          # The zip must hold only the mod's files, in the layout of the game folder.
+          bad="$(unzip -Z1 "release/$name" | grep -Ev '^(archive/pc/mod/WendellStripes\.archive(\.xl)?|r6/(scripts|tweaks)/WendellStripes/.*|archive/|archive/pc/|archive/pc/mod/|r6/|r6/(scripts|tweaks)/)$' || true)"
+          if [ -n "$bad" ]; then
+            echo "::error::The zip has files outside the mod's paths:"
+            echo "$bad"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "file=release/$name" >> "$GITHUB_OUTPUT"
+          echo "name=$name" >> "$GITHUB_OUTPUT"
+
+      - name: Read the release notes
+        id: notes
+        env:
+          GH_TOKEN: ${{ github.token }}
+          MOD_ID: ${{ vars.NEXUSMODS_MOD_ID }}
+        run: |
+          set -euo pipefail
+          # The changelog is sent only when the mod ID is set and the release has notes.
+          body=""
+          if [ -n "$MOD_ID" ]; then
+            body="$(gh release view "$TAG" --repo "$GITHUB_REPOSITORY" --json body --jq .body)"
+          fi
+          {
+            echo "changelog<<WENDELLSTRIPES_END_OF_NOTES"
+            echo "$body"
+            echo "WENDELLSTRIPES_END_OF_NOTES"
+          } >> "$GITHUB_OUTPUT"
+          if [ -n "$body" ]; then echo "mod_id=$MOD_ID" >> "$GITHUB_OUTPUT"; fi
+
+      - name: Upload to Nexus Mods
+        id: nexus
+        # Nexus-Mods/upload-action v1.0.0-beta.11
+        uses: Nexus-Mods/upload-action@98532f7670c27cbecc78fae03fa3e278147827e2
+        with:
+          api_key: ${{ secrets.NEXUSMODS_API_KEY }}
+          file_id: ${{ vars.NEXUSMODS_FILE_ID }}
+          filename: ${{ steps.zip.outputs.file }}
+          version: ${{ steps.zip.outputs.version }}
+          display_name: Where's Wendell (Strypovski)
+          category: main
+          archive_existing_version: 'true'
+          primary_mod_manager_download: 'true'
+          allow_mod_manager_download: 'true'
+          show_requirements_pop_up: 'true'
+          update_mod_version: 'true'
+          mod_id: ${{ steps.notes.outputs.mod_id }}
+          changelog: ${{ steps.notes.outputs.changelog }}
+
+      - name: Summary
+        env:
+          NAME: ${{ steps.zip.outputs.name }}
+          VERSION_ID: ${{ steps.nexus.outputs.version_id }}
+        run: echo "Uploaded $NAME to Nexus Mods (file version ID $VERSION_ID)." >> "$GITHUB_STEP_SUMMARY"
