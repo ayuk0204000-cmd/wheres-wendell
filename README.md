@@ -1,1 +1,1 @@
-archive\pc\mod\WendellStripes.archive archive\pc\mod\WendellStripes.archive.xl r6\scripts\WendellStripes\ r6\tweaks\WendellStripes\
+27f9a1e3a84673be0089ba196ebf57a2f7add46a
